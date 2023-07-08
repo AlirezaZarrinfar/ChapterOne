@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'drf_spectacular'
+    'drf_spectacular',
+    'django_rest_passwordreset',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +143,11 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     # OTHER SETTINGS
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'ChapterOneApplication@gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_PASSWORD = 'bpxpsuscbmlausra'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'ChapterOne Website'
