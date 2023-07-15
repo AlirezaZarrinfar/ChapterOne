@@ -76,6 +76,9 @@ DATABASES = {
     }
 }
 
+MEDIA_ROOT = BASE_DIR / 'media'  # change it in deployment to public_html dir
+MEDIA_URL = '/media/'
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -151,3 +154,4 @@ EMAIL_PORT = 587
 EMAIL_HOST_PASSWORD = 'bpxpsuscbmlausra'
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'ChapterOne Website'
+

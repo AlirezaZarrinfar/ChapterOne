@@ -2,6 +2,7 @@ import datetime
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
@@ -36,6 +37,11 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     role = models.IntegerField()
     date_joined = models.DateTimeField(default=datetime.datetime.now())
+    rated_books = models.ManyToManyField('SocialMedia.Book', through='SocialMedia.Rating', related_name='books_rated')
+    favorite_books = models.ManyToManyField('SocialMedia.Book', related_name='books_favorited')
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers')
+    following_num = models.IntegerField(default=0)
+    followers_num = models.IntegerField(default=0)
 
     REQUIRED_FIELDS = ['full_name']
 
