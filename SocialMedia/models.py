@@ -35,3 +35,21 @@ class Rating(models.Model):
 
     class Meta:
         unique_together = ['user', 'book']
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    text = models.TextField()
+    parent_comment = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=datetime.datetime.now())
+
+class Author(models.Model):
+    full_name = models.CharField(max_length=100)
+    biography = models.TextField()
+    birth_date = models.DateField()
+    country = models.CharField(max_length=100)
+    books_written = models.ManyToManyField(Book, related_name='authors')
+
+    def __str__(self):
+        return self.full_name

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
-from SocialMedia.models import Book, Rating
+from SocialMedia.models import Book, Rating, Comment, Author
 from Users.models import User
 
 
@@ -107,3 +107,40 @@ class FollowSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     email = serializers.EmailField()
     full_name = serializers.CharField()
+
+
+from rest_framework import serializers
+from .models import Book, Comment
+
+
+class CreateCommentSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True,
+                                              default=serializers.CurrentUserDefault())
+    book_id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'user', 'text', 'created_at', 'parent_comment', 'book_id')
+
+
+class GetCommentSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.full_name')
+    replies = serializers.SerializerMethodField()
+
+    def get_replies(self, obj):
+        replies = Comment.objects.filter(parent_comment=obj.id)
+        serializer = GetCommentSerializer(replies, many=True)
+        return serializer.data
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'user', 'text', 'created_at', 'replies')
+
+
+class GetAuthorSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(max_length=100, required=False)
+    book_id = serializers.IntegerField(required=False, write_only=True)
+    biography = serializers.CharField(read_only=True)
+    birth_date = serializers.DateField(read_only=True)
+    country = serializers.CharField(max_length=100)

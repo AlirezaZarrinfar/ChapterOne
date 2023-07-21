@@ -1,6 +1,8 @@
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 from Users.models import User
-from Users.serializers import UserSignUpSerializer, UserSignInSerializer, ChangePasswordSerializer
+from Users.serializers import UserSignUpSerializer, UserSignInSerializer, ChangePasswordSerializer, \
+    UserProfileSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
@@ -72,3 +74,11 @@ class ChangePasswordView(APIView):
             'code': status.HTTP_400_BAD_REQUEST,
             'data': ''
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileView(RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserProfileSerializer
+    queryset = User.objects.all()
+    lookup_field = 'id'  # نام فیلد در مدل که برای جستجو استفاده می‌شود
+    lookup_url_kwarg = 'user_id'
