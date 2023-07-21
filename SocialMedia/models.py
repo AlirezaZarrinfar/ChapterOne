@@ -10,6 +10,12 @@ def books_image_directory_path(instance, filename):
     extension = filename.split('.')[-1]
     return 'book/{0}/{1}'.format(str(now.day) + '-' + str(now.month) + '-' + str(now.year), str(uuid4()) + '.' + extension)
 
+def author_image_directory_path(instance, filename):
+    now = datetime.datetime.now()
+    extension = filename.split('.')[-1]
+    return 'author/{0}/{1}'.format(str(now.day) + '-' + str(now.month) + '-' + str(now.year), str(uuid4()) + '.' + extension)
+
+
 class Book(models.Model):
     name = models.CharField(max_length=100)
     release_date = models.DateField()
@@ -50,6 +56,8 @@ class Author(models.Model):
     birth_date = models.DateField()
     country = models.CharField(max_length=100)
     books_written = models.ManyToManyField(Book, related_name='authors')
+    image = models.ImageField(upload_to=author_image_directory_path, blank=True, null=True)
+
 
     def __str__(self):
         return self.full_name

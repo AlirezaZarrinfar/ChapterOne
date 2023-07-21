@@ -40,6 +40,9 @@ class GetBooksView(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         data = super().get(self, request, *args, **kwargs).data
+        for i in data:
+            authors = Author.objects.filter(books_written=i['id']).values()
+            i['authors'] = authors
         if len(data) != 0:
             return Response({
                 'data': list(data),
@@ -62,8 +65,13 @@ class RateBookView(APIView):
         if serializer.is_valid():
             rating = serializer.validated_data['rating']
             book = serializer.validated_data['book']
-            new_rating = Rating(user=request.user, book=book, rating=rating)
-            new_rating.save()
+            existing_rating = serializer.validated_data['existing_rating']
+            if not existing_rating:
+                new_rating = Rating(user=request.user, book=book, rating=rating)
+                new_rating.save()
+            else:
+                existing_rating.rating = rating
+                existing_rating.save()
 
             return Response({
                 'data': 'Book rated successfully',
@@ -259,9 +267,9 @@ class GetBooksByAuthorView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class GetBookRatingView(APIView):
     permission_classes = (IsAuthenticated,)
+
     def get(self, request, book_id):
         book = Book.objects.filter(id=book_id).first()
         if not book:

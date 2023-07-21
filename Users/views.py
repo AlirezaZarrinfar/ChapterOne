@@ -21,7 +21,7 @@ class UserSignUpView(APIView):
                 ser_data.validated_data['password'],
             )
             token, created = Token.objects.get_or_create(user=user)
-            result = {'token': 'Token' + token.key, 'userId': user.id}
+            result = {'token': 'Token ' + token.key, 'userId': user.id}
             return Response({
                 'msg': 'successfully logged in !!',
                 'code': status.HTTP_200_OK,
@@ -42,7 +42,7 @@ class UserSignInView(APIView):
         if ser_data.is_valid():
             user = ser_data.validated_data
             token, created = Token.objects.get_or_create(user=user)
-            result = {'token': 'Token' + token.key, 'userId': user.id}
+            result = {'token': 'Token ' + token.key, 'userId': user.id}
             return Response({
                 'msg': 'successfully logged in !!',
                 'code': status.HTTP_200_OK,

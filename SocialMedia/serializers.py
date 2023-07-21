@@ -34,9 +34,12 @@ class RateBookSerializer(serializers.Serializer):
         user = self.context['request'].user
         existing_rating = Rating.objects.filter(user=user, book=book).first()
         if existing_rating:
-            raise serializers.ValidationError({'error': 'You have already rated this book.'})
+            data['book'] = book
+            data['existing_rating'] = existing_rating
+            return data
 
         data['book'] = book
+        data['existing_rating'] = None
         return data
 
 
@@ -148,6 +151,7 @@ class GetAuthorSerializer(serializers.Serializer):
     biography = serializers.CharField(read_only=True)
     birth_date = serializers.DateField(read_only=True)
     country = serializers.CharField(max_length=100)
+    image = serializers.CharField(max_length=100)
 
 
 class GetBookRatingSerializer(serializers.ModelSerializer):
