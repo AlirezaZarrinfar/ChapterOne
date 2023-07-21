@@ -21,10 +21,11 @@ class UserSignUpView(APIView):
                 ser_data.validated_data['password'],
             )
             token, created = Token.objects.get_or_create(user=user)
+            result = {'token': 'Token' + token.key, 'userId': user.id}
             return Response({
-                'msg': 'successfully created !!',
+                'msg': 'successfully logged in !!',
                 'code': status.HTTP_200_OK,
-                'data': 'Token ' + token.key
+                'data': result
             }, status=status.HTTP_200_OK)
         return Response({
             'msg': ser_data.errors,
@@ -41,10 +42,11 @@ class UserSignInView(APIView):
         if ser_data.is_valid():
             user = ser_data.validated_data
             token, created = Token.objects.get_or_create(user=user)
+            result = {'token': 'Token' + token.key, 'userId': user.id}
             return Response({
                 'msg': 'successfully logged in !!',
                 'code': status.HTTP_200_OK,
-                'data': 'Token ' + token.key
+                'data': result
             }, status=status.HTTP_200_OK)
         return Response({
             'msg': ser_data.errors,
@@ -56,8 +58,9 @@ class UserSignInView(APIView):
 class ChangePasswordView(APIView):
     serializer_class = ChangePasswordSerializer
     permission_classes = (IsAuthenticated,)
+
     def put(self, request, *args, **kwargs):
-        serializer = ChangePasswordSerializer(data=request.data,context={'request': request})
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
         user = request.user
         if serializer.is_valid():
             new_pass = serializer.validated_data['new_password']

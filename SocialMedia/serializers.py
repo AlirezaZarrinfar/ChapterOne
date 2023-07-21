@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
-from SocialMedia.models import Book, Rating, Comment, Author
+from SocialMedia.models import Book, Rating, Comment, Author, FavoriteBook
 from Users.models import User
 
 
@@ -42,10 +42,13 @@ class RateBookSerializer(serializers.Serializer):
 
 class ToggleFavoriteBookSerializer(serializers.Serializer):
     book_id = serializers.IntegerField(write_only=True)
+    status = serializers.CharField()
 
     def validate(self, attrs):
         book_id = attrs.get('book_id')
-
+        status = attrs.get('status')
+        if status not in ('خوانده شده', 'درحال خواندن', 'برای خواندن'):
+            raise serializers.ValidationError("Invalid Input.")
         try:
             book = Book.objects.get(pk=book_id)
         except Book.DoesNotExist:
@@ -56,12 +59,13 @@ class ToggleFavoriteBookSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         book = validated_data.get('book')
-
+        status = validated_data.get('status')
         if book in instance.favorite_books.all():
             instance.favorite_books.remove(book)
             message = 'Book removed from favorites.'
         else:
-            instance.favorite_books.add(book)
+            favoritebook = FavoriteBook.objects.create(user=instance, book=book, status=status)
+            favoritebook.save()
             message = 'Book added to favorites.'
 
         return message
@@ -144,3 +148,9 @@ class GetAuthorSerializer(serializers.Serializer):
     biography = serializers.CharField(read_only=True)
     birth_date = serializers.DateField(read_only=True)
     country = serializers.CharField(max_length=100)
+
+
+class GetBookRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = ('user', 'book', 'rating')

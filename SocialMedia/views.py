@@ -7,10 +7,11 @@ from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters, generics
 from rest_framework.views import APIView
-from SocialMedia.models import Book, Rating, Comment, Author
+from SocialMedia.models import Book, Rating, Comment, Author, FavoriteBook
 from SocialMedia.serializers import GetBooksSerializer, RateBookSerializer, \
-    ToggleFollowSerializer, FollowSerializer, ToggleFavoriteBookSerializer, \
-    FavoriteBooksListSerializer, CreateCommentSerializer, GetCommentSerializer, GetAuthorSerializer
+    ToggleFollowSerializer, FollowSerializer, \
+    CreateCommentSerializer, GetCommentSerializer, GetAuthorSerializer, ToggleFavoriteBookSerializer, \
+    FavoriteBooksListSerializer, GetBookRatingSerializer
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -101,11 +102,15 @@ class ToggleFavoriteBookView(generics.UpdateAPIView):
 class FavoriteBooksListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request,*args,**kwargs):
+    def get(self, request, *args, **kwargs):
         userid = self.kwargs['user_id']
         user = User.objects.get(id=userid)
         favorite_books = user.favorite_books
+        data = FavoriteBook.objects.filter(user_id=userid)
         serializer = FavoriteBooksListSerializer(favorite_books, many=True)
+        for i in serializer.data:
+            i['status'] = data.get(book_id=i['id']).status
+
         if serializer.data:
             return Response({
                 'data': serializer.data,
@@ -197,7 +202,6 @@ class CreateCommentView(generics.CreateAPIView):
         serializer.save(user=self.request.user, book=book)
 
 
-
 class GetCommentView(generics.ListAPIView):
     serializer_class = GetCommentSerializer
     permission_classes = (IsAuthenticated,)
@@ -255,3 +259,17 @@ class GetBooksByAuthorView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+class GetBookRatingView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, book_id):
+        book = Book.objects.filter(id=book_id).first()
+        if not book:
+            return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            rating = Rating.objects.get(book=book, user=request.user)
+            serializer = GetBookRatingSerializer(rating)
+            return Response(serializer.data)
+        except Rating.DoesNotExist:
+            return Response({"error": "Rating not found"}, status=status.HTTP_404_NOT_FOUND)

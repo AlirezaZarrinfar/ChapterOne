@@ -53,3 +53,18 @@ class Author(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class FavoriteBook(models.Model):
+    STATUS_CHOICES = (
+        ('READ', 'خوانده شده'),
+        ('TO_READ', 'برای خواندن'),
+        ('READING', 'درحال خواندن'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='TO_READ')
+
+    def __str__(self):
+        return f"{self.user.full_name} - {self.book.name} ({self.get_status_display()})"

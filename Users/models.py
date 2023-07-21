@@ -38,7 +38,7 @@ class User(AbstractBaseUser):
     role = models.IntegerField()
     date_joined = models.DateTimeField(default=datetime.datetime.now())
     rated_books = models.ManyToManyField('SocialMedia.Book', through='SocialMedia.Rating', related_name='books_rated')
-    favorite_books = models.ManyToManyField('SocialMedia.Book', related_name='books_favorited')
+    favorite_books = models.ManyToManyField('SocialMedia.Book', through='SocialMedia.FavoriteBook', related_name='books_favorited_by')
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers')
     following_num = models.IntegerField(default=0)
     followers_num = models.IntegerField(default=0)
