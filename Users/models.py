@@ -1,4 +1,6 @@
 import datetime
+import re
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
@@ -62,6 +64,17 @@ class User(AbstractBaseUser):
     def is_staff(self):
         return self.role == ADMIN_ROLE
 
+    def validate_password(password):
+        if len(password) < 8:
+            return False
+
+        if not re.search(r'[A-Z]', password):
+            return False
+
+        if not re.search(r'[a-z]', password):
+            return False
+
+        return True
 
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):

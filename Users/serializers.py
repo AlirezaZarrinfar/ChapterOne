@@ -15,6 +15,13 @@ class UserSignUpSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         email = attrs.get('email')
+        password = attrs.get('password')
+        if not User.validate_password(password):
+            password_validations = [
+                "Password must be at least 8 characters long.",
+                "Password must contain at least one uppercase letter and one lowercase letter.",
+            ]
+            raise serializers.ValidationError(detail={'error': password_validations})
         user = User.objects.filter(email=email)
         if user:
             raise serializers.ValidationError(detail={'error': 'your email already exists !'})

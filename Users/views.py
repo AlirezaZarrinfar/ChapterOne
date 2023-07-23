@@ -85,3 +85,27 @@ class UserProfileView(RetrieveAPIView):
     queryset = User.objects.all()
     lookup_field = 'id'  # نام فیلد در مدل که برای جستجو استفاده می‌شود
     lookup_url_kwarg = 'user_id'
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        user_id = self.kwargs.get(self.lookup_url_kwarg)
+        obj = queryset.filter(id=user_id).first()
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance:
+            response_data = {
+                "data": {},
+                "msg": "User not found.",
+                "code": status.HTTP_404_NOT_FOUND
+            }
+        else:
+            serializer = self.get_serializer(instance)
+            response_data = {
+                "data": serializer.data,
+                "msg": "User data retrieved successfully.",
+                "code": status.HTTP_200_OK
+            }
+
+        return Response(response_data, status=response_data["code"])

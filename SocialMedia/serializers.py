@@ -1,5 +1,5 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
 
 from SocialMedia.models import Book, Rating, Comment, Author, FavoriteBook
 from Users.models import User
@@ -114,36 +114,63 @@ class FollowSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     email = serializers.EmailField()
     full_name = serializers.CharField()
-
-
-from rest_framework import serializers
-from .models import Book, Comment
-
-
 class CreateCommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True,
                                               default=serializers.CurrentUserDefault())
     book_id = serializers.IntegerField(required=True)
+    parent_comment_id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'text', 'created_at', 'parent_comment', 'book_id')
+        fields = ('id', 'user', 'text', 'created_at', 'parent_comment_id', 'book_id')
 
+    def validate_book_id(self, value):
+        try:
+            book = Book.objects.get(pk=value)
+        except Book.DoesNotExist:
+            raise serializers.ValidationError("Book not found.")
+        return value
 
+    def validate_parent_comment_id(self, value):
+        if value:
+            try:
+                parent_comment = Comment.objects.get(pk=value)
+            except Comment.DoesNotExist:
+                raise serializers.ValidationError("Parent comment not found.")
+        return value
+
+    def create(self, validated_data):
+        book_id = validated_data.pop('book_id')
+        parent_comment_id = validated_data.pop('parent_comment_id', None)
+        book = Book.objects.get(pk=book_id)
+        parent_comment = None
+        if parent_comment_id:
+            parent_comment = Comment.objects.get(pk=parent_comment_id)
+        request = self.context['request']
+        comment = Comment.objects.create(book=book, parent_comment=parent_comment, user=request.user, **validated_data)
+        return comment
 class GetCommentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.full_name')
     replies = serializers.SerializerMethodField()
-
-    def get_replies(self, obj):
-        replies = Comment.objects.filter(parent_comment=obj.id)
-        serializer = GetCommentSerializer(replies, many=True)
-        return serializer.data
 
     class Meta:
         model = Comment
         fields = ('id', 'user', 'text', 'created_at', 'replies')
 
+    def get_replies(self, instance):
+        replies = Comment.objects.filter(parent_comment=instance.id)
+        serializer = GetCommentSerializer(replies, many=True)
+        return serializer.data
 
+    def to_representation(self, instance):
+        response_data = {
+            "id": instance.id,
+            "user": instance.user.full_name,
+            "text": instance.text,
+            "created_at": instance.created_at,
+            "replies": self.get_replies(instance),
+        }
+        return response_data
 class GetAuthorSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     full_name = serializers.CharField(max_length=100, required=False)
@@ -152,9 +179,28 @@ class GetAuthorSerializer(serializers.Serializer):
     birth_date = serializers.DateField(read_only=True)
     country = serializers.CharField(max_length=100)
     image = serializers.CharField(max_length=100)
+class GetBookRatingSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(read_only=True)
+    book_id = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
+    def validate_book_id(self, book_id):
+        try:
+            book = Book.objects.get(id=book_id)
+            return book_id
+        except Book.DoesNotExist:
+            raise serializers.ValidationError("Book not found.")
 
-class GetBookRatingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Rating
-        fields = ('user', 'book', 'rating')
+    def validate(self, temp):
+        data = self.initial_data
+        book_id = data['book_id']
+        user_id = data['user_id']
+
+        try:
+            book = Book.objects.get(id=book_id)
+            user = User.objects.get(id=user_id)
+            rating = Rating.objects.get(book=book, user=user)
+            data['rating'] = rating.rating
+            return data
+        except (Book.DoesNotExist, User.DoesNotExist, Rating.DoesNotExist):
+            raise serializers.ValidationError("Rating not found.")
