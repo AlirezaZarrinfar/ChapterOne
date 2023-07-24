@@ -12,9 +12,10 @@ urlpatterns = [
     path('followers/<int:user_id>/', FollowersView.as_view(), name='followers'),
     path('followings/<int:user_id>/', FollowingView.as_view(), name='following'),
     path('comments/add/', CreateCommentView.as_view(), name='add_comment'),
-    path('comments/get/<int:book_id>/', GetCommentView.as_view(), name='book-comments'),
+    path('comment/get/<int:book_id>/', GetCommentsView.as_view(), name='book-comments'),
     path('authors/<int:book_id>', GetAuthorView.as_view(), name='author-filter'),
     path('books-by-author/<int:author_id>/', GetBooksByAuthorView.as_view(), name='books-by-author'),
     path('books/rating/<int:book_id>', GetBookRatingView.as_view(), name='book_rating'),
+    path('rating/count/<int:book_id>', GetRatingCountView.as_view(), name='rating_count'),
 
 ]

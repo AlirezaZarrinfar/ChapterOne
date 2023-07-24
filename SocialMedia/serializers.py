@@ -149,28 +149,7 @@ class CreateCommentSerializer(serializers.ModelSerializer):
         request = self.context['request']
         comment = Comment.objects.create(book=book, parent_comment=parent_comment, user=request.user, **validated_data)
         return comment
-class GetCommentSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.full_name')
-    replies = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Comment
-        fields = ('id', 'user', 'text', 'created_at', 'replies')
-
-    def get_replies(self, instance):
-        replies = Comment.objects.filter(parent_comment=instance.id)
-        serializer = GetCommentSerializer(replies, many=True)
-        return serializer.data
-
-    def to_representation(self, instance):
-        response_data = {
-            "id": instance.id,
-            "user": instance.user.full_name,
-            "text": instance.text,
-            "created_at": instance.created_at,
-            "replies": self.get_replies(instance),
-        }
-        return response_data
 class GetAuthorSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     full_name = serializers.CharField(max_length=100, required=False)
@@ -204,3 +183,44 @@ class GetBookRatingSerializer(serializers.Serializer):
             return data
         except (Book.DoesNotExist, User.DoesNotExist, Rating.DoesNotExist):
             raise serializers.ValidationError("Rating not found.")
+
+
+class GetRatingCountSerializer(serializers.Serializer):
+    count = serializers.IntegerField(read_only=True)
+
+    def validate_book_id(self, value):
+        book = Book.objects.filter(id=value).first()
+        if not book:
+            raise serializers.ValidationError("Book does not found !!")
+        return value
+
+    def validate(self, data):
+        book_id = self.initial_data['book_id']
+        rates = Rating.objects.filter(book_id=book_id)
+        if not rates:
+            raise serializers.ValidationError("Rates does not found !!")
+        return data
+
+
+class GetCommentSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.full_name')
+    replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'user', 'text', 'created_at', 'replies')
+
+    def get_replies(self, instance):
+        replies = Comment.objects.filter(parent_comment=instance.id)
+        serializer = GetCommentSerializer(replies, many=True)
+        return serializer.data
+
+    def to_representation(self, instance):
+        response_data = {
+            "id": instance.id,
+            "user": instance.user.full_name,
+            "text": instance.text,
+            "created_at": instance.created_at,
+            "replies": self.get_replies(instance),
+        }
+        return response_data

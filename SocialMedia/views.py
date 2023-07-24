@@ -8,7 +8,7 @@ from SocialMedia.models import Book, Rating, Comment, Author, FavoriteBook
 from SocialMedia.serializers import GetBooksSerializer, RateBookSerializer, \
     ToggleFollowSerializer, FollowSerializer, \
     CreateCommentSerializer, GetCommentSerializer, GetAuthorSerializer, ToggleFavoriteBookSerializer, \
-    FavoriteBooksListSerializer, GetBookRatingSerializer
+    FavoriteBooksListSerializer, GetBookRatingSerializer, GetRatingCountSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from Users.models import User
@@ -231,29 +231,6 @@ class CreateCommentView(APIView):
                          "code": status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetCommentView(ListAPIView):
-    serializer_class = GetCommentSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        book_id = self.kwargs['book_id']
-        return Comment.objects.filter(book=book_id, parent_comment=None)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        if len(serializer.data) != 0:
-            return Response({'data': serializer.data, 'msg': 'successfully done !!', 'code': status.HTTP_200_OK},
-                            status=status.HTTP_200_OK)
-        return Response({'data': {}, 'msg': 'data not found !!', 'code': status.HTTP_404_NOT_FOUND},
-                        status=status.HTTP_404_NOT_FOUND)
-
 
 class GetAuthorView(ListAPIView):
     permission_classes = (IsAuthenticated,)
@@ -325,3 +302,50 @@ class GetBookRatingView(APIView):
                 "code": status.HTTP_400_BAD_REQUEST
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetRatingCountView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = GetRatingCountSerializer
+
+    def get(self, request, book_id):
+        serializer = self.serializer_class(data={'book_id': book_id})
+        if serializer.is_valid():
+            rates = Rating.objects.filter(book_id=book_id)
+            response_data = {
+                "data": len(rates),
+                "msg": "Successfully done !!",
+                "code": status.HTTP_200_OK
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        response_data = {
+            "data": [],
+            "msg": serializer.errors,
+            "code": status.HTTP_400_BAD_REQUEST
+        }
+        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class GetCommentsView(ListAPIView):
+    serializer_class = GetCommentSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        book_id = self.kwargs['book_id']
+        return Comment.objects.filter(book=book_id, parent_comment=None)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        if len(serializer.data) != 0:
+            return Response({'data': serializer.data, 'msg': 'successfully done !!', 'code': status.HTTP_200_OK},
+                            status=status.HTTP_200_OK)
+        return Response({'data': {}, 'msg': 'data not found !!', 'code': status.HTTP_404_NOT_FOUND},
+                        status=status.HTTP_404_NOT_FOUND)
