@@ -11,10 +11,10 @@ services:
     volumes:
       - type: bind
         source: ./static
-        target: /projects/mehrad/back/ChapterOne/static
+        target: /Chapterone/static
       - type: bind
         source: ./media
-        target: /projects/mehrad/back/ChapterOne/media
+        target: /Chapterone/media
     depends_on:
       - db
 
