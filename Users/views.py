@@ -83,7 +83,7 @@ class UserProfileView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserProfileSerializer
     queryset = User.objects.all()
-    lookup_field = 'id'  # نام فیلد در مدل که برای جستجو استفاده می‌شود
+    lookup_field = 'id'
     lookup_url_kwarg = 'user_id'
 
     def get_object(self):
