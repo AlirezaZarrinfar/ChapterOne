@@ -81,7 +81,7 @@ DATABASES = {
     }
 }
 
-MEDIA_ROOT = BASE_DIR / 'media'  # change it in deployment to public_html dir
+MEDIA_ROOT = 'media/'  # change it in deployment to public_html dir
 MEDIA_URL = '/media/'
 
 # Password validation
@@ -126,7 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
