@@ -2,7 +2,7 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 from Users.models import User
 from Users.serializers import UserSignUpSerializer, UserSignInSerializer, ChangePasswordSerializer, \
-    UserProfileSerializer
+    UserProfileSerializer, UpdateUserProfileSerializer, UserSearchSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
@@ -83,7 +83,7 @@ class UserProfileView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserProfileSerializer
     queryset = User.objects.all()
-    lookup_field = 'id'  # نام فیلد در مدل که برای جستجو استفاده می‌شود
+    lookup_field = 'id'
     lookup_url_kwarg = 'user_id'
 
     def get_object(self):
@@ -109,3 +109,58 @@ class UserProfileView(RetrieveAPIView):
             }
 
         return Response(response_data, status=response_data["code"])
+
+
+class UserProfileEditView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateUserProfileSerializer
+    def put(self, request):
+        user = request.user
+        serializer = UpdateUserProfileSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            response_data = {
+                "data": serializer.data,
+                "msg": "User edited successfully.",
+                "code": status.HTTP_200_OK
+            }
+            return Response(response_data)
+        response_data = {
+            "data": [],
+            "msg": serializer.errors,
+            "code": status.HTTP_400_BAD_REQUEST
+        }
+        return Response(response_data, status=400)
+
+
+class UserSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSearchSerializer
+    def post(self, request):
+        serializer = UserSearchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        full_name = serializer.validated_data.get('full_name')
+        email = serializer.validated_data.get('email')
+
+        users = User.objects.all()
+
+        if full_name:
+            users = users.filter(full_name__icontains=full_name)
+
+        if email:
+            users = users.filter(email__icontains=email)
+
+        serializer = UserProfileSerializer(users, many=True)
+        if len(serializer.data) != 0 :
+            return Response({
+                'data' : serializer.data,
+                'msg' : 'User Found Successfully !!',
+                'code' : status.HTTP_200_OK
+            } ,status=status.HTTP_200_OK)
+        return Response({
+            'data': [],
+            'msg': 'User not Found !!',
+            'code': status.HTTP_404_NOT_FOUND
+        }, status=status.HTTP_404_NOT_FOUND)
+

@@ -12,6 +12,8 @@ SECRET_KEY = 'django-insecure-bf5qbym)9%t+iv0b)otd^9cbbjwv!%ez_&63&tt4rirxv*ovo=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CSRF_TRUSTED_ORIGINS = ['http://api.chapterone.kveh.ir']
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 

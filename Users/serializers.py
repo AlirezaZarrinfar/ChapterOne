@@ -59,3 +59,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'full_name', 'date_joined', 'following_num', 'followers_num']
+
+class UpdateUserProfileSerializer(serializers.Serializer):
+    full_name = serializers.CharField(required=True)
+
+    def update(self, instance, validated_data):
+        instance.full_name = validated_data.get('full_name', instance.full_name)
+        instance.save()
+        return instance
+
+class UserSearchSerializer(serializers.Serializer):
+    full_name = serializers.CharField(required=False , allow_null=True , allow_blank=True)
+    email = serializers.CharField(required=False , allow_null=True , allow_blank=True)
