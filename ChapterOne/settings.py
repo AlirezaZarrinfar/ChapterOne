@@ -12,6 +12,8 @@ SECRET_KEY = 'django-insecure-bf5qbym)9%t+iv0b)otd^9cbbjwv!%ez_&63&tt4rirxv*ovo=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CSRF_TRUSTED_ORIGINS = ['http://api.chapterone.kveh.ir']
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
@@ -76,12 +78,12 @@ DATABASES = {
         'NAME': 'ChapterOne_DB',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '3306',
     }
 }
 
-MEDIA_ROOT = BASE_DIR / 'media'  # change it in deployment to public_html dir
+MEDIA_ROOT = 'media/'  # change it in deployment to public_html dir
 MEDIA_URL = '/media/'
 
 # Password validation
@@ -126,6 +128,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
